@@ -4,6 +4,7 @@
 #include "esp_log.h"
 #include "proto.h"
 #include "sensor.h"
+#include "servo.h"
 
 typedef struct {
 	float temperature;
@@ -34,6 +35,15 @@ void sensor_task(void *arg)
 void fan_control_task(void *arg)
 {
 	const float THRESHOLD = 28.0f;
+
+	sg90_init();
+	while (1)
+	{
+		sg90_set_angle(0);
+		vTaskDelay(pdMS_TO_TICKS(2000));
+		sg90_set_angle(180);
+		vTaskDelay(pdMS_TO_TICKS(2000));
+	}
 
 	while (1)
 	{
