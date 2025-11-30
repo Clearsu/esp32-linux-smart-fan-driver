@@ -2,6 +2,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
+#include "proto.h"
+#include "sensor.h"
 
 typedef struct {
 	float temperature;
@@ -49,6 +51,7 @@ void fan_control_task(void *arg)
 
 void app_main(void)
 {
+	/*
 	BaseType_t ret;
 
 	ESP_LOGI("MAIN", "app_main start");
@@ -63,4 +66,28 @@ void app_main(void)
 		ESP_LOGE("MAIN", "Failed to create sensor_task");
 	}
 	ESP_LOGI("MAIN", "app_main end");
+	*/
+
+	/*
+	uint8_t buf[64];
+	uint16_t out_len;
+
+	uint8_t payload[] = {0x12, 0x84};
+
+	proto_build_frame(0x81, 0x01, payload, sizeof(payload), buf, &out_len);
+	printf("TX frame (%d bytes): ", out_len);
+	for (int i = 0; i < out_len; i++) {
+		printf("%02X ", buf[i]);
+	}
+	printf("\n");
+	*/
+
+	float temp = 0;
+	float humidity = 0;
+
+	esp_rom_delay_us(3000000);
+
+	dht_gpio_init();
+	dht_read(&temp, &humidity);
+	printf("temp: %f, humidity: %f\n", temp, humidity);
 }
