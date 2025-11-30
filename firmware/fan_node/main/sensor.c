@@ -1,6 +1,6 @@
 /**
  *
- * Temperature and humidity sensor AM2302 (DHT22) driver for ESP32
+ * Temperature and humidity sensor AM2302 (DHT22) firmware for ESP32
  * 
  * Implementation is based on this datasheet::
  * https://cdn-shop.adafruit.com/datasheets/Digital+humidity+and+temperature+sensor+AM2302.pdf
@@ -73,7 +73,7 @@ static int	dht_read_1bit(void)
 		cnt++;
 		esp_rom_delay_us(1);
 	}
-	if (cnt > 40)
+	if (cnt > 30)
 		return 1;
 	return 0;
 }
