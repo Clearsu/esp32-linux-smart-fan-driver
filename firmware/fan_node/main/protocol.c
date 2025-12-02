@@ -1,4 +1,4 @@
-#include "proto.h"
+#include "protocol.h"
 
 static uint16_t	crc16_step(uint16_t crc, uint8_t data)
 {
@@ -29,7 +29,9 @@ bool	proto_build_frame(uint8_t cmd, uint8_t seq, const uint8_t *payload,
 	uint16_t	pos;
 	uint16_t	crc;
 
-	if (len > PROTO_MAX_PAYLOAD || !payload || !out || !out_len)
+	if (len > PROTO_MAX_PAYLOAD || !out || !out_len)
+		return false;
+	if (len > 0 && !payload)
 		return false;
 	pos = 0;
 	out[pos++] = PROTO_SYNC0;
