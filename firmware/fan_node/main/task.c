@@ -37,10 +37,13 @@ void	fan_control_task(void *arg)
 		{
 			if (g_state.temperature >= g_state.temp_threshold)
 			{
+				if (g_state.fan_state == PROTO_FAN_STATE_OFF)
+					g_state.fan_state = PROTO_FAN_STATE_ON;
 				sg90_set_angle(0);
 				vTaskDelay(pdMS_TO_TICKS(1000));
 				sg90_set_angle(180);
-			}
+			} else
+				g_state.fan_state = PROTO_FAN_STATE_OFF;
 		}
 		else if (g_state.fan_mode == PROTO_FAN_MODE_MANUAL)
 		{
