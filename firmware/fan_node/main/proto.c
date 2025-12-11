@@ -1,4 +1,4 @@
-#include "protocol.h"
+#include "proto.h"
 
 static uint16_t	crc16_step(uint16_t crc, uint8_t data)
 {

@@ -37,7 +37,8 @@
  */
 
 #include "driver/ledc.h"
-#include "servo.h"
+
+#include "sg90.h"
 
 #define SG90_GPIO 13
 #define MAX_US 2000
