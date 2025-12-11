@@ -2,25 +2,27 @@
  *
  * Temperature and humidity sensor AM2302 (DHT22) firmware for ESP32
  * 
- * Implementation is based on this datasheet::
+ * Implementation is based on the datasheet:
  * https://cdn-shop.adafruit.com/datasheets/Digital+humidity+and+temperature+sensor+AM2302.pdf
  *
  */
 
 
-#include "sensor.h"
 
 #include <stdio.h>
+
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
 
+#include "dht22.h"
+
 #define DHT_GPIO 23
 #define GPIO_LOW 0
 #define GPIO_HIGH 1
 
-static const char *TAG = "sensor";
+static const char *TAG = "DHT22";
 
 static void	dht_set_idle(void)
 {

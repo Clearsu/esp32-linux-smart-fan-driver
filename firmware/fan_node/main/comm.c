@@ -1,5 +1,6 @@
 #include "driver/uart.h"
-#include "communication.h"
+
+#include "comm.h"
 
 static const char	*TAG = "COMM";
 
