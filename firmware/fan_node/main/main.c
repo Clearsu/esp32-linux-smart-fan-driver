@@ -17,6 +17,10 @@ void app_main(void)
 	if (!g_cmd_queue)
 		ESP_LOGE("MAIN", "Failed to create cmd queue");
 
+	g_state.fan_mode = PROTO_FAN_STATE_OFF;
+	g_state.fan_mode = PROTO_FAN_MODE_AUTO;
+	g_state.temp_threshold = 20.0f;
+
 	ret = xTaskCreate(sensor_task, "sensor_task", 4096, NULL, 5, NULL);
 	if (ret != pdPASS)
 		ESP_LOGE("MAIN", "Failed to create sensor_task");
@@ -31,18 +35,4 @@ void app_main(void)
 		ESP_LOGE("MAIN", "Failed to create cmd_handler_task");
 
 	ESP_LOGI("MAIN", "app_main end");
-
-	/*
-	uint8_t buf[64];
-	uint16_t out_len;
-
-	uint8_t payload[] = {0x12, 0x84};
-
-	proto_build_frame(0x81, 0x01, payload, sizeof(payload), buf, &out_len);
-	printf("TX frame (%d bytes): ", out_len);
-	for (int i = 0; i < out_len; i++) {
-		printf("%02X ", buf[i]);
-	}
-	printf("\n");
-	*/
 }

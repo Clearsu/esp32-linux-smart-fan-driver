@@ -34,14 +34,14 @@ typedef enum {
 }	proto_cmd_t;
 
 typedef enum {
-	PROTO_ERR_OK = 0x01,
-	PROTO_ERR_INVALID_ARG = 0x02,
-	PROTO_ERR_STATE = 0x03,
+	PROTO_ERR_OK = 0x00,
+	PROTO_ERR_INVALID_ARG = 0x01,
+	PROTO_ERR_STATE = 0x02,
 }	proto_err_t;
 
 typedef enum {
-	PROTO_FAN_STATE_ON = 0,
-	PROTO_FAN_STATE_OFF = 1,
+	PROTO_FAN_STATE_OFF = 0,
+	PROTO_FAN_STATE_ON = 1,
 }	proto_fan_state_t;
 
 typedef enum {
