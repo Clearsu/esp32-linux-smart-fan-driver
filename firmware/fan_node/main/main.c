@@ -17,6 +17,10 @@ void app_main(void)
 	if (!g_cmd_queue)
 		ESP_LOGE("MAIN", "Failed to create cmd queue");
 
+	g_state.fan_mode = PROTO_FAN_STATE_OFF;
+	g_state.fan_mode = PROTO_FAN_MODE_AUTO;
+	g_state.temp_threshold = 20.0f;
+
 	ret = xTaskCreate(sensor_task, "sensor_task", 4096, NULL, 5, NULL);
 	if (ret != pdPASS)
 		ESP_LOGE("MAIN", "Failed to create sensor_task");
