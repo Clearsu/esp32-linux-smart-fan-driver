@@ -1,3 +1,9 @@
 build/
 sdkconfig
 *.swp
+*.img
+*.iso
+*.qcow2
+*.fd
+*.tar
+*.gz
