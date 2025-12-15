@@ -1,8 +1,10 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "proto.h"
 #include "serial.h"
 #include "cmd.h"
+#include "util.h"
 
 int main(int argc, char **argv)
 {
@@ -11,13 +13,13 @@ int main(int argc, char **argv)
 	int	fd;
 	bool	res;
 
-	if (argc < 4 || strcmp(argv[1], "-p") != 0)
+	if (argc < 3)
 	{
-		printf("Usage: %s -p /dev/ttyXXX <ping|status|...>\n", argv[0]);
+		printf("Usage: %s /dev/ttyXXX <ping|status|...>\n", argv[0]);
 		return 1;
 	}
-	port = argv[2];
-	cmd = argv[3];
+	port = argv[1];
+	cmd = argv[2];
 	fd = serial_open(port, 115200);
 	if (fd < 0)
 	{
@@ -32,17 +34,44 @@ int main(int argc, char **argv)
 	{
 		res = do_status(fd);
 	}
-	else if (strcmp(cmd, "set_fan_mode") == 0)
+	else if (strcmp(cmd, "auto") == 0)
 	{
-		res = do_set_fan_mode(fd);
+		res = do_set_fan_mode(fd, PROTO_FAN_MODE_AUTO);
 	}
-	else if (strcmp(cmd, "set_fan_state") == 0)
+	else if (strcmp(cmd, "manual") == 0)
 	{
-		res = do_set_fan_state(fd);
+		res = do_set_fan_mode(fd, PROTO_FAN_MODE_MANUAL);
 	}
-	else if (strcmp(cmd, "set_threshold") == 0)
+	else if (strcmp(cmd, "on") == 0)
 	{
-		res = do_set_threshold(fd);
+		res = do_set_fan_state(fd, PROTO_FAN_STATE_ON);
+	}
+	else if (strcmp(cmd, "off") == 0)
+	{
+		res = do_set_fan_state(fd, PROTO_FAN_STATE_OFF);
+	}
+	else if (strcmp(cmd, "threshold") == 0)
+	{
+		float	temp;
+		int	err;
+
+		if (argc != 4)
+		{
+			fprintf(stderr, "Wrong number of arguments\n");
+			return 1;
+		}
+		temp = parse_temp_str(argv[3], &err);
+		if (err == PARSE_TEMP_ERR_FORMAT)
+		{
+			fprintf(stderr, "Wrong number format\n");
+			return 1;
+		}
+		if (err == PARSE_TEMP_ERR_RANGE)
+		{
+			fprintf(stderr, "Available threshold: -40°C <= temp <= 80°C\n");
+			return 1;
+		}
+		res = do_set_threshold(fd, temp);
 	}
 	else
 	{
