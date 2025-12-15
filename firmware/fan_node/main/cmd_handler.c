@@ -124,7 +124,7 @@ void	handle_set_threshold(proto_frame_t *req)
 	temp = (float)temp_x100 / 100;
 	if (temp > 80.0f || temp < -40.0f)
 	{
-		ESP_LOGW(TAG, "available threshold: <= 80 and >= -40");
+		ESP_LOGW(TAG, "available threshold: <= 80°C and >= -40°C (request: %f)", temp);
 		send_ack(req, PROTO_ERR_INVALID_ARG);
 		return;
 	}
