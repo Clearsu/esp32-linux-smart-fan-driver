@@ -1,5 +1,6 @@
 #include "serial.h"
 #include "req.h"
+#include "util.h"
 
 #include <stdio.h>
 
@@ -7,14 +8,14 @@ bool	req_w8(int fd, uint8_t cmd, uint8_t *payload, uint8_t payload_len, proto_fr
 {
 	uint8_t		frame_buf[256];
 	uint8_t		read_buf[256];
-	uint8_t		seq;
+	static uint8_t	seq = 0;
 	uint16_t	frame_len;
 	int		pos;
 	int		bytes_read;
 	proto_rx_t	rx;
+	int		deadline_ms;
 
-	seq = 0;
-	if (!proto_build_frame(cmd, seq, payload, payload_len, frame_buf, &frame_len))
+	if (!proto_build_frame(cmd, seq++, payload, payload_len, frame_buf, &frame_len))
 	{
 		fprintf(stderr, "Failed to build frame");
 		return false;
@@ -37,11 +38,14 @@ bool	req_w8(int fd, uint8_t cmd, uint8_t *payload, uint8_t payload_len, proto_fr
 #ifdef DEBUG
 	printf("RX frame: ");
 #endif
+	deadline_ms = get_curr_time_milli() + 1000;
 	while (pos < (int)sizeof(read_buf))
 	{
+		if (get_curr_time_milli() > deadline_ms)
+			break;
 		bytes_read = serial_read(fd, read_buf + pos, sizeof(read_buf) - pos, 100); 
 		if (bytes_read < 0)
-			return false;
+			break;
 		if (bytes_read == 0) // timeout
 			continue;
 		for (int i = 0; i < bytes_read; i++)

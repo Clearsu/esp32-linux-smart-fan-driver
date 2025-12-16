@@ -7,3 +7,4 @@ typedef enum {
 } parse_temp_err_t;
 
 float	parse_temp_str(char *temp_str, int *err);
+int	get_curr_time_milli(void);

@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <time.h>
 
 #include "util.h"
 
@@ -12,7 +13,7 @@ static char *skip_ws(char *s)
 	return s;
 }
 
-float parse_temp_str(char *temp_str, int *err)
+float	parse_temp_str(char *temp_str, int *err)
 {
 	char	*end = NULL;
 	float 	res;
@@ -42,4 +43,13 @@ float parse_temp_str(char *temp_str, int *err)
 	}
 	*err = PARSE_TEMP_ERR_OK;
 	return res;
+}
+
+int	get_curr_time_milli(void)
+{
+	struct timespec	ts;
+
+	if (timespec_get(&ts, TIME_UTC) == 0)
+		return -1; // error
+	return (int64_t)ts.tv_sec * 1000 + (int64_t)ts.tv_nsec / 1000000;
 }

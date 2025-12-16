@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -O2 -Iinclude
+CFLAGS = -Wall -Wextra -Iinclude
 DBGFLAGS = -DDEBUG -g
 
 SRCS = main.c \
