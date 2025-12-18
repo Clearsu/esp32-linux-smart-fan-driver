@@ -1,8 +1,23 @@
 #pragma once
 
+#ifdef __KERNEL__
+
+#include <linux/types.h>
+#include <linux/kernel.h>
+typedef u8   proto_u8;
+typedef u16  proto_u16;
+typedef s16  proto_s16;
+
+#else
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+typedef uint8_t  proto_u8;
+typedef uint16_t proto_u16;
+typedef int16_t  proto_s16;
+
+#endif
 
 #define PROTO_MAX_PAYLOAD 32
 
@@ -51,33 +66,33 @@ typedef enum {
 
 typedef struct {
 	proto_rx_state_t	st;
-	uint8_t				cmd;
-	uint8_t				seq;
-	uint8_t				len;
-	uint8_t				pos;
-	uint8_t				payload[PROTO_MAX_PAYLOAD];
-	uint16_t			crc;
-	uint16_t			crc_recv;
+	proto_u8		cmd;
+	proto_u8		seq;
+	proto_u8		len;
+	proto_u8		pos;
+	proto_u8		payload[PROTO_MAX_PAYLOAD];
+	proto_u16		crc;
+	proto_u16		crc_recv;
 }	proto_rx_t;
 
 typedef struct {
-	uint8_t	cmd;
-	uint8_t	seq;
-	uint8_t	len;
-	uint8_t	payload[PROTO_MAX_PAYLOAD];
+	proto_u8	cmd;
+	proto_u8	seq;
+	proto_u8	len;
+	proto_u8	payload[PROTO_MAX_PAYLOAD];
 }	proto_frame_t;
 
 typedef struct __attribute__((packed)) {
-	int16_t		temp_x100; // 0.01°C
-	uint16_t	humidity_x100; // 0.01% RH
-	uint8_t		fan_mode; // 0=AUTO, 1=MANUAL
-	uint8_t		fan_state; // 0=OFF, 1=ON
-	uint16_t	errors; // bitfield
+	proto_s16	temp_x100; // 0.01°C
+	proto_u16	humidity_x100; // 0.01% RH
+	proto_u8	fan_mode; // 0=AUTO, 1=MANUAL
+	proto_u8	fan_state; // 0=OFF, 1=ON
+	proto_u16	errors; // bitfield
 }	status_resp_t;
 
-uint16_t	proto_crc16(const uint8_t *data, uint16_t len);
-bool		proto_build_frame(uint8_t cmd, uint8_t seq, const uint8_t *payload,
-							uint8_t len, uint8_t *out, uint16_t *out_len);
+uint16_t	proto_crc16(const proto_u8 *data, proto_u16 len);
+bool		proto_build_frame(proto_u8 cmd, proto_u8 seq, const proto_u8 *payload,
+							proto_u8 len, proto_u8 *out, proto_u16 *out_len);
 void		proto_rx_init(proto_rx_t *rx);
-bool		proto_rx_feed(proto_rx_t *rx, uint8_t byte, proto_frame_t *out);
+bool		proto_rx_feed(proto_rx_t *rx, proto_u8 byte, proto_frame_t *out);
 

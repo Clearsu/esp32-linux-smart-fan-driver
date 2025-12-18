@@ -1,8 +1,8 @@
 #include "proto.h"
 
-static uint16_t	crc16_step(uint16_t crc, uint8_t data)
+static proto_u16	crc16_step(proto_u16 crc, proto_u8 data)
 {
-	crc ^= (uint16_t)data << 8;
+	crc ^= (proto_u16)data << 8;
 	for (int i = 0; i < 8; i++)
 	{
 		if (crc & 0x8000)
@@ -13,9 +13,9 @@ static uint16_t	crc16_step(uint16_t crc, uint8_t data)
 	return crc;
 }
 
-uint16_t	proto_crc16(const uint8_t *data, uint16_t len)
+proto_u16	proto_crc16(const proto_u8 *data, proto_u16 len)
 {
-	uint16_t	crc;
+	proto_u16	crc;
 
 	crc = 0xFFFF;
 	for (int i = 0; i < len; i++)
@@ -23,11 +23,11 @@ uint16_t	proto_crc16(const uint8_t *data, uint16_t len)
 	return crc;
 }
 
-bool	proto_build_frame(uint8_t cmd, uint8_t seq, const uint8_t *payload,
-						uint8_t len, uint8_t *out, uint16_t *out_len)
+bool	proto_build_frame(proto_u8 cmd, proto_u8 seq, const proto_u8 *payload,
+						proto_u8 len, proto_u8 *out, proto_u16 *out_len)
 {
-	uint16_t	pos;
-	uint16_t	crc;
+	proto_u16	pos;
+	proto_u16	crc;
 
 	if (len > PROTO_MAX_PAYLOAD || !out || !out_len)
 		return false;
@@ -54,7 +54,7 @@ void	proto_rx_init(proto_rx_t *r)
 	r->pos = 0;
 }
 
-bool	proto_rx_feed(proto_rx_t *r, uint8_t b, proto_frame_t *out)
+bool	proto_rx_feed(proto_rx_t *r, proto_u8 b, proto_frame_t *out)
 {
 	if (!r || !out)
 		return false;
@@ -106,7 +106,7 @@ bool	proto_rx_feed(proto_rx_t *r, uint8_t b, proto_frame_t *out)
 				r->st = RX_CRC_HI;
 			break;
 		case RX_CRC_HI:
-			r->crc_recv = (uint16_t)b << 8;
+			r->crc_recv = (proto_u16)b << 8;
 			r->st = RX_CRC_LO;
 			break;
 		case RX_CRC_LO:
