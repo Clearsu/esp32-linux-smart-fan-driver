@@ -42,7 +42,6 @@ static void	dht_send_start_signal(void)
 static int16_t	dht_gpio_wait_level(int level, uint16_t timeout_us)
 {
 	uint16_t	timeout;
-	int			ret;
 
 	timeout = timeout_us;
 	while (timeout-- > 0)
@@ -66,8 +65,9 @@ static bool	dht_read_start_response(void)
 
 static int	dht_read_1bit(void)
 {
-	int16_t	cnt = 0;
+	int16_t	cnt;
 
+	cnt = 0;
 	if (dht_gpio_wait_level(GPIO_LOW, 100) == -1 || dht_gpio_wait_level(GPIO_HIGH, 100) == -1)
 		return -1;
 	while (gpio_get_level(DHT_GPIO) == GPIO_HIGH && cnt < 100)
@@ -83,8 +83,8 @@ static int	dht_read_1bit(void)
 static bool	dht_read_raw(uint8_t out[5])
 {
 	int	byte_index;
-	int bit_index;
-	int8_t buffer[40];
+	int	bit_index;
+	int8_t	buffer[40];
 
 	memset(out, 0, 5);
 	for (int i = 0; i < 40; i++)
