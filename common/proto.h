@@ -90,7 +90,7 @@ typedef struct __attribute__((packed)) {
 	proto_u16	errors; // bitfield
 }	status_resp_t;
 
-uint16_t	proto_crc16(const proto_u8 *data, proto_u16 len);
+proto_u16	proto_crc16(const proto_u8 *data, proto_u16 len);
 bool		proto_build_frame(proto_u8 cmd, proto_u8 seq, const proto_u8 *payload,
 							proto_u8 len, proto_u8 *out, proto_u16 *out_len);
 void		proto_rx_init(proto_rx_t *rx);
