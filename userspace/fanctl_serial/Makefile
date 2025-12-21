@@ -2,12 +2,12 @@ CC		= gcc
 CFLAGS		= -Wall -Wextra -O2
 DBGFLAGS	= -DDEBUG -g
 
-INCS		= . ../../common
+INCS		= . ../../common/
 INCLUDES	= $(addprefix -I,$(INCS))
 
 SRCS = main.c \
        serial.c \
-       ../../common/proto.c \
+       proto.c \
        cmd.c \
        req.c \
        util.c
