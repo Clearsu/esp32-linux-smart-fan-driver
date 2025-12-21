@@ -2,7 +2,7 @@ idf_component_register(
 	SRCS	"main.c"
 			"dht22.c"
 			"sg90.c"
-			"../../../common/proto.c"
+			"proto.c"
 			"comm.c"
 			"cmd_handler.c"
 			"task.c"
