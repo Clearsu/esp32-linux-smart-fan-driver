@@ -7,5 +7,5 @@ idf_component_register(
 			"cmd_handler.c"
 			"task.c"
 			"sys_state.c"
-	INCLUDE_DIRS "."
+	INCLUDE_DIRS "." "../../../common"
 )

@@ -34,7 +34,7 @@ static void	decode_status_resp(proto_frame_t *resp)
 		printf("MANUAL");
 	else
 		printf("UNKNOWN");
-	printf(" fan_state=%s", fan_state == PROTO_FAN_STATE_ON ? "ON" : "OFF");
+	printf(" fan_state=");
 	if (fan_state == PROTO_FAN_STATE_ON)
 		printf("ON");
 	else if (fan_state == PROTO_FAN_STATE_OFF)

@@ -1,0 +1,5 @@
+# CP2102 USB-to-UART -> /dev/ttyFAN
+SUBSYSTEM=="tty", \
+DRIVERS=="cp210x", \
+ATTRS{interface}=="CP2102 USB to UART Bridge Controller", \
+SYMLINK+="ttyFAN"
