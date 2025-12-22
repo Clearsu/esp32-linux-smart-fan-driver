@@ -24,3 +24,10 @@ Then, unplug and replug the USB device. When you run `ls -l /dev/ttyFAN`, you sh
 ```
 lrwxrwxrwx 1 root root 7 Dec 18 13:13 /dev/ttyFAN -> ttyUSB1
 ```
+
+### tty setup (required)
+
+After successful application of the udev rule, you must set the tty device to send & receive raw byte stream.
+```
+stty -F /dev/ttyFAN 115200 raw -echo -ixon -ixoff -crtscts
+```
