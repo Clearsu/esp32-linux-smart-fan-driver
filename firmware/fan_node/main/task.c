@@ -9,17 +9,17 @@
 
 void	sensor_task(void *arg)
 {
-	float	temperature;
-	float	humidity;
+	float	t;
+	float	h;
 
 	vTaskDelay(pdMS_TO_TICKS(3000));
 	dht_gpio_init();
 	while (1)
 	{
-		if (dht_read(&temperature, &humidity))
+		if (dht_read(&t, &h))
 		{
-			g_state.temperature = temperature;
-			g_state.humidity = humidity;
+			sys_state_set_temperature(t);
+			sys_state_set_humidity(h);
 		}
 		else
 			ESP_LOGE("SENSOR", "sensor error");
@@ -27,39 +27,43 @@ void	sensor_task(void *arg)
 	}
 }
 
+static inline void	move_fan(void)
+{
+	sg90_set_angle(0);
+	vTaskDelay(pdMS_TO_TICKS(1000));
+	sg90_set_angle(180);
+}
+
 void	fan_control_task(void *arg)
 {
+	sys_state_t	state;
+
 	sg90_init();
 	while (1)
 	{
-		if (g_state.fan_mode == PROTO_FAN_MODE_AUTO)
+		sys_state_get_state(&state);
+		if (state.fan_mode == PROTO_FAN_MODE_AUTO)
 		{
-			if (g_state.temperature >= g_state.temp_threshold)
+			if (state.temperature >= state.temp_threshold)
 			{
-				if (g_state.fan_state == PROTO_FAN_STATE_OFF)
+				if (state.fan_state == PROTO_FAN_STATE_OFF)
 				{
-					g_state.fan_state = PROTO_FAN_STATE_ON;
+					sys_state_set_fan_state(PROTO_FAN_STATE_ON);
 					ESP_LOGI("FAN", "temperature exceeded threshold: fan ON");
 				}
-				sg90_set_angle(0);
-				vTaskDelay(pdMS_TO_TICKS(1000));
-				sg90_set_angle(180);
+				move_fan();
 			} else {
-				if (g_state.fan_state == PROTO_FAN_STATE_ON)
+				if (state.fan_state == PROTO_FAN_STATE_ON)
 				{
-					g_state.fan_state = PROTO_FAN_STATE_OFF;
+					sys_state_set_fan_state(PROTO_FAN_STATE_OFF);
 					ESP_LOGI("FAN", "temperature is below threshold: fan OFF");
 				}
 			}
 		}
-		else if (g_state.fan_mode == PROTO_FAN_MODE_MANUAL)
+		else if (state.fan_mode == PROTO_FAN_MODE_MANUAL)
 		{
-			if (g_state.fan_state == PROTO_FAN_STATE_ON)
-			{
-				sg90_set_angle(0);
-				vTaskDelay(pdMS_TO_TICKS(1000));
-				sg90_set_angle(180);
-			}
+			if (state.fan_state == PROTO_FAN_STATE_ON)
+				move_fan();
 		}
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
@@ -79,19 +83,19 @@ void	uart_read_task(void *arg)
 		read_len = uart_read_bytes(COMM_UART, rx_buf, sizeof(rx_buf), pdMS_TO_TICKS(100));
 		if (read_len > 0)
 		{
-			ESP_LOGI("UART", "RX %d bytes: ", read_len);
-			for (int i = 0; i < read_len; i++)
-				printf("%02X ", rx_buf[i]);
-			printf("\n");
+			ESP_LOGD("UART", "RX %d bytes: ", read_len);
+			ESP_LOG_BUFFER_HEXDUMP("UART", rx_buf, read_len, ESP_LOG_DEBUG);
+			//for (int i = 0; i < read_len; i++)
+			//	printf("%02X ", rx_buf[i]);
+			//printf("\n");
 			for (int i = 0; i < read_len; i++)
 			{
 				if (proto_rx_feed(&rx, rx_buf[i], &frame)) {
-					if (xQueueSend(g_cmd_queue, &frame, 0) != pdTRUE)
+					if (xQueueSend(g_cmd_queue, &frame, pdMS_TO_TICKS(50)) != pdTRUE)
 						ESP_LOGE("UART", "Queue full, drop cmd 0x%02X", frame.cmd);
 				}
 			}
 		}
-		vTaskDelay(pdMS_TO_TICKS(10));
 	}
 }
 

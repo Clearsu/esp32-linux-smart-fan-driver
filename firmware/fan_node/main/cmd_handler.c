@@ -30,14 +30,17 @@ static void	send_ack(proto_frame_t *req, const uint8_t status)
 
 void	handle_status_req(proto_frame_t *req)
 {
+	sys_state_t		sys_state;
 	status_resp_t	status;
 	proto_frame_t	resp;
 
-	status.temp_x100 = BE16((int16_t)(g_state.temperature * 100.0f));
-	status.humidity_x100 = BE16((uint16_t)(g_state.humidity * 100.0f));
-	status.fan_mode = g_state.fan_mode;
-	status.fan_state = g_state.fan_state;
-	status.errors = BE16(g_state.errors);
+	sys_state_get_state(&sys_state);
+
+	status.temp_x100 = BE16((int16_t)(sys_state.temperature * 100.0f));
+	status.humidity_x100 = BE16((uint16_t)(sys_state.humidity * 100.0f));
+	status.fan_mode = sys_state.fan_mode;
+	status.fan_state = sys_state.fan_state;
+	status.errors = BE16(sys_state.errors);
 
 	ESP_LOGI(TAG, "status:");
 	printf("(Note: temp_x100, humid_x100, errors are converted to big-endian\n\n");
@@ -76,14 +79,15 @@ void	handle_set_fan_mode(proto_frame_t *req)
 		send_ack(req, PROTO_ERR_INVALID_ARG);
 		return;
 	}
-	g_state.fan_mode = mode;
-	ESP_LOGI(TAG, "set fan mode to %s", g_state.fan_mode == PROTO_FAN_MODE_AUTO ? "AUTO" : "MANUAL");
+	sys_state_set_fan_mode(mode);
+	ESP_LOGI(TAG, "set fan mode to %s", mode == PROTO_FAN_MODE_AUTO ? "AUTO" : "MANUAL");
 	send_ack(req, PROTO_ERR_OK);
 }
 
 void	handle_set_fan_state(proto_frame_t *req)
 {
-	proto_fan_state_t	state;
+	proto_fan_state_t	fan_state;
+	sys_state_t			sys_state;
 
 	if (req->len != 1)
 	{
@@ -91,21 +95,22 @@ void	handle_set_fan_state(proto_frame_t *req)
 		send_ack(req, PROTO_ERR_INVALID_ARG);
 		return;
 	}
-	state = req->payload[0];
-	if (state != PROTO_FAN_STATE_ON && state != PROTO_FAN_STATE_OFF)
+	fan_state = req->payload[0];
+	if (fan_state != PROTO_FAN_STATE_ON && fan_state != PROTO_FAN_STATE_OFF)
 	{
 		ESP_LOGW(TAG, "unkown fan state");
 		send_ack(req, PROTO_ERR_INVALID_ARG);
 		return;
 	}
-	if (g_state.fan_mode == PROTO_FAN_MODE_AUTO)
+	sys_state_get_state(&sys_state);
+	if (sys_state.fan_mode == PROTO_FAN_MODE_AUTO)
 	{
 		ESP_LOGW(TAG, "cannot change fan state: Current fan mode must be MANUAL");
 		send_ack(req, PROTO_ERR_STATE);
 		return;
 	}
-	g_state.fan_state = state;
-	ESP_LOGI(TAG, "set fan state to %s", g_state.fan_state == PROTO_FAN_STATE_ON ? "ON" : "OFF");
+	sys_state_set_fan_state(fan_state);
+	ESP_LOGI(TAG, "set fan state to %s", fan_state == PROTO_FAN_STATE_ON ? "ON" : "OFF");
 	send_ack(req, PROTO_ERR_OK);
 }
 
@@ -128,8 +133,8 @@ void	handle_set_threshold(proto_frame_t *req)
 		send_ack(req, PROTO_ERR_INVALID_ARG);
 		return;
 	}
-	g_state.temp_threshold = temp;
-	ESP_LOGI(TAG, "set threshold to %.2f", g_state.temp_threshold);
+	sys_state_set_threshold(temp);
+	ESP_LOGI(TAG, "set threshold to %.2f", temp);
 	send_ack(req, PROTO_ERR_OK);
 }
 
