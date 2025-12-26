@@ -12,13 +12,10 @@ bool	fanctl_match_resp(fanctl_ctx_t *ctx, const proto_frame_t *resp)
 {
 	if (resp->seq != ctx->pending_seq)
 		return false;
-
 	if (ctx->pending_cmd == PROTO_CMD_PING && resp->cmd == PROTO_CMD_PONG)
 		return true;
-
 	if (ctx->pending_cmd == PROTO_CMD_STATUS_REQ && resp->cmd == PROTO_CMD_STATUS_RESP)
 		return true;
-
 	if ((ctx->pending_cmd == PROTO_CMD_SET_FAN_MODE
 		|| ctx->pending_cmd == PROTO_CMD_SET_FAN_STATE
 		|| ctx->pending_cmd == PROTO_CMD_SET_THRESHOLD)
@@ -26,7 +23,6 @@ bool	fanctl_match_resp(fanctl_ctx_t *ctx, const proto_frame_t *resp)
 		&& resp->len >= 2
 		&& resp->payload[0] == ctx->pending_cmd)
 		return true;
-
 	return false;
 }
 
@@ -46,6 +42,7 @@ int	fanctl_write_frame(fanctl_ctx_t *ctx, const proto_frame_t *req)
 
 	if (!proto_build_frame(req->cmd, req->seq, req->payload, req->len, buf, &out_len))
 		return -EINVAL;
+
 	deadline = jiffies + msecs_to_jiffies(1000);
 	while (offset < out_len)
 	{
@@ -73,7 +70,8 @@ int	fanctl_write_frame(fanctl_ctx_t *ctx, const proto_frame_t *req)
 }
 
 int	fanctl_do_req_wait_resp(fanctl_ctx_t *ctx, u8 req_cmd, const u8 *payload,
-			u8 len, proto_frame_t *out_resp, unsigned long timeout_jiffies)
+				u8 len, proto_frame_t *out_resp,
+				unsigned long timeout_jiffies)
 {
 	int		ret;
 	unsigned long	flags;
@@ -82,7 +80,7 @@ int	fanctl_do_req_wait_resp(fanctl_ctx_t *ctx, u8 req_cmd, const u8 *payload,
 	if (!ctx || !out_resp || len > PROTO_MAX_PAYLOAD || (len && !payload))
 		return -EINVAL;
 
-	mutex_lock(&ctx->req_lock);
+	mutex_lock(&ctx->req_lock); // ensure one request at a time
 
 	ctx->waiting = true;
 	ctx->pending_cmd = req_cmd;
@@ -100,7 +98,12 @@ int	fanctl_do_req_wait_resp(fanctl_ctx_t *ctx, u8 req_cmd, const u8 *payload,
 	if (ret)
 		goto out;
 
-	if (!wait_for_completion_timeout(&ctx->resp_done, timeout_jiffies)) {
+	/*
+	 * Sleep until the RX callback(fanctl_receive_buf) wakes
+	 * this context up via resp_done completion.
+	 */
+	if (!wait_for_completion_timeout(&ctx->resp_done, timeout_jiffies))
+	{
 		ret = -ETIMEDOUT;
 		goto out;
 	}

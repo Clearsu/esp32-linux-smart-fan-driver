@@ -1,3 +1,18 @@
+"""
+proto_test.py
+
+Protocol bring-up and validation tool for the ESP32 fan node.
+
+This script communicates directly with the firmware over a raw serial
+interface and exercises the custom UART binary protocol:
+    - Frame format
+    - CRC handling
+    - Request / response behavior
+    - State validation (AUTO / MANUAL mode, threshold logic)
+
+Used during early development and debugging.
+"""
+
 import sys
 import time
 import struct

@@ -128,12 +128,6 @@ bool	dht_read(float *out_temp, float *out_humid)
 	}
 	if (!dht_read_raw(out))
 		return false;
-	/*
-	printf("raw out:");
-	for (int i = 0; i < 5; i++)
-		printf("%02X ", out[i]);
-	printf("\n");
-	*/
 	if (!dht_check_checksum(out))
 		return false;
 	*out_humid = (float)((out[0] << 8) | out[1]) / 10;
