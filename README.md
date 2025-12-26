@@ -24,6 +24,10 @@ The goal of this project is to explore low-level Linux–MCU communication, kern
 ## Demo
 
 ## System Architecture
+The diagram illustrates the end-to-end control flow from userspace,
+through the Linux kernel, down to the ESP32 firmware.
+
+<img width="550" alt="image" src="https://github.com/user-attachments/assets/e04bac04-6959-4660-a01c-1aa6958dd2a1" />
 
 ### Data Flow
 When the CLI tool calls an `ioctl()` on `/dev/fanctl`, the following sequence occurs:
