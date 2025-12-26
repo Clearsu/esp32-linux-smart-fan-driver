@@ -1,3 +1,9 @@
+/*
+ * fanctl - Userspace CLI
+ * ----------------------
+ * A minimal ioctl-based CLI wrapper for `/dev/fanctl`.
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>

@@ -1,3 +1,11 @@
+/*
+ * fanctl_serial (legacy)
+ * ----------------------
+ * This userspace application directly communicates with the ESP32
+ * over a raw serial device.
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -15,7 +23,7 @@ int main(int argc, char **argv)
 
 	if (argc < 3)
 	{
-		printf("Usage: %s /dev/ttyXXX <ping|status|...>\n", argv[0]);
+		printf("Usage: %s /dev/ttyXXX <ping|status|auto|manual|on|off|threshold <tempC>>\n", argv[0]);
 		return 1;
 	}
 	port = argv[1];
