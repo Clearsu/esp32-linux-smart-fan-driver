@@ -15,7 +15,7 @@ This project implements an end-to-end embedded system consisting of:
 The goal of this project is to explore low-level Linux–MCU communication, kernel-space design, and real-time firmware architecture in a single coherent system.
 
 ## Tech Stack
-1. **Language**: C, Python (test script)
+1. **Language**: C
 2. **Embedded / Firmware**: ESP-IDF, FreeRTOS, UART, GPIO, PWM
 3. **Linux Kernel**: Linux Kernel Module, tty line discipline
 4. **Userspace**: POSIX
@@ -24,6 +24,33 @@ The goal of this project is to explore low-level Linux–MCU communication, kern
 ## Demo
 
 ## System Architecture
+
+### Data Flow
+When the CLI tool calls an `ioctl()` on `/dev/fanctl`, the following sequence occurs:
+
+#### **1. Userspace → Kernel transition**
+The calling process enters kernel mode via the ioctl system call and executes the driver’s `unlocked_ioctl` handler.
+This happens in the context of the same userspace process.
+
+#### **2. Request transmission**
+The ioctl handler builds a protocol frame and sends it to the ESP32 via the TTY subsystem (`tty->ops->write()`).
+
+#### **3. Synchronous wait**
+After transmitting the request, the ioctl handler goes to sleep using a completion object, waiting for the corresponding response frame.
+
+#### **4. UART receive path**
+When response bytes arrive from the ESP32 over UART, they are handled by the TTY core and forwarded to the custom line discipline’s RX callback (`receive_buf2`).
+
+#### **5. Frame parsing and wakeup**
+The RX callback feeds incoming bytes into the protocol parser.
+Once a complete response frame matching the outstanding request is received, it stores the frame and wakes up the sleeping ioctl context via `complete()`.
+
+#### **6. Response handling**
+The ioctl handler resumes execution, validates the response, copies the result back to userspace using `copy_to_user()`, and returns.
+
+#### **7. Kernel → Userspace transition**
+The `ioctl()` system call finishes and execution returns to userspace, where the CLI tool processes and displays the result.
+
 
 ### Design Rationale
 
@@ -43,6 +70,31 @@ making the userspace API simple and explicit.
 
 
 ## Repository Structure
+
+#### `common/`
+- UART binary protocol format and framing (`proto.*`)
+- Userspace & kernel ABI definitions (`fanctl_uapi.h`)
+
+#### `docs/`
+- Protocol description (`protocol.md`)
+
+#### `firmware/fan_node/`
+- ESP32 firmware for the smart fan node.
+
+#### `kernel/fanctl/`
+- Linux kernel driver for the ESP32 fan node.
+
+#### `tools/python/`
+- A raw serial protocol test script (`proto_test.py`)
+
+#### `tools/script/udev`
+- `udev` rule installation (`install_udev.sh`)
+
+#### `userspace/fanctl_ioctl`
+- Primary userspace control tool.
+
+#### `userspace/fanctl_serial`
+- Legacy userspace tool using raw serial acess.
 
 
 ## Components
@@ -77,12 +129,6 @@ making the userspace API simple and explicit.
 #### Userspace CLI
 - Communicates only through `/dev/fanctl`
 - No direct UART access from userspace
-- Supports:
-  - `ping`: connection check
-  - `status`: fan node status query
-  - `auto`, `manual`: fan mode control
-  - `on`, `off`: fan power control
-  - `threshold [temp (°C)]`: temperature threshold configuration
 
 
 ## How to Run
@@ -159,10 +205,19 @@ sudo ldattach 27 /dev/ttyFAN
 ### 6. Build and Run Userspace CLI
 
 ```bash
-cd userspace/fanctl
+cd userspace/fanctl_ioctl
 make
-./fanctl status
+./fanctl <cmd>
 ```
+**cmd**:
+1. `ping`: connection check - expects `PONG`
+2. `status`: request current temperature, humidity, fan mode, fan state, and errors
+3. `auto`: set fan mode automatic (fan will be on when the temperature reaches the threshold)
+4. `manual`: set fan mode manual
+5. `on`: set fan state on (when the mode is manual)
+6. `off`: set fan state off (when the mode is manual)
+7. `threshold <tempC>`: set threshold 
 
 ## License
-MIT
+
+This project is licensed under the GNU General Public License, version 2.
