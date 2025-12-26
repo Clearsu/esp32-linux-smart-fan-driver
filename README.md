@@ -87,13 +87,13 @@ making the userspace API simple and explicit.
 #### `tools/python/`
 - A raw serial protocol test script (`proto_test.py`)
 
-#### `tools/script/udev`
+#### `tools/script/udev/`
 - `udev` rule installation (`install_udev.sh`)
 
-#### `userspace/fanctl_ioctl`
+#### `userspace/fanctl_ioctl/`
 - Primary userspace control tool.
 
-#### `userspace/fanctl_serial`
+#### `userspace/fanctl_serial/`
 - Legacy userspace tool using raw serial acess.
 
 
