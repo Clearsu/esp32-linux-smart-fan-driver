@@ -97,7 +97,7 @@ The `ioctl()` system call finishes and execution returns to userspace, where the
 
 ### Design Rationale
 
-#### UART protocol
+#### UART protocol (`docs/protocol.md`)
 A custom binary protocol is used instead of text-based commands to ensure:
 - deterministic parsing
 - compact messages
