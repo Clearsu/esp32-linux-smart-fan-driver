@@ -1,5 +1,7 @@
 # esp32-linux-smart-fan-driver
 
+A system in which an ESP32 MCU monitors temperature via a DHT22 sensor, activates a fan when a threshold is exceeded, communicates with a Linux host using a custom UART protocol, and allows the user to control the MCU through a custom Linux kernel driver.
+
 ## Summary
 
 ESP32-based smart fan node controlled from Linux through a custom kernel driver.
@@ -14,6 +16,12 @@ This project implements an end-to-end embedded system consisting of:
 
 The goal of this project is to explore low-level Linux–MCU communication, kernel-space design, and real-time firmware architecture in a single coherent system.
 
+## Demo
+
+A demo video is available [here](https://youtu.be/Qun5vBz071g?si=i2pg1vGy6oFy4kOQ).
+
+<img width="500" src="https://github.com/user-attachments/assets/68057464-d43b-412d-a060-66cdb585ca0f"/>
+
 ## Tech Stack
 1. **Language**: C
 2. **Embedded / Firmware**: ESP-IDF, FreeRTOS, UART, GPIO, PWM
@@ -21,7 +29,38 @@ The goal of this project is to explore low-level Linux–MCU communication, kern
 4. **Userspace**: POSIX
 5. **Build**: GNU Make, ESP-IDF build system
 
-## Demo
+## Components
+
+### Hardware
+- ESP32 DevKitC V4
+- DHT22 temperature & humidity sensor
+- SG90 servo motor (fan actuator)
+- CP2102 USB-to-UART bridge
+
+### Software
+
+#### ESP32 Firmware
+- Built with ESP-IDF
+- Uses FreeRTOS with multiple tasks:
+- `uart_read_task`: receives raw UART bytes and parses frames
+- `cmd_handler_task`: processes protocol commands
+- `sensor_task`: reads DHT22 sensor periodically
+- `fan_control_task`: controls servo based on system state
+- A central system state (`sys_state_t`) stored in a shared structure
+- UART communication uses the same protocol definition as the Linux side
+
+#### Linux Kernel Module
+- Custom tty line discipline
+- Parses incoming UART frames in kernel space
+- Implements a character device `/dev/fanctl`
+- Supports synchronous command/response using:
+  - A mutex for request serialization
+  - Completion for blocking wait
+- Exposes control operations via `ioctl`
+
+#### Userspace CLI
+- Communicates only through `/dev/fanctl`
+- No direct UART access from userspace
 
 ## System Architecture
 The diagram illustrates the end-to-end control flow from userspace,
@@ -99,40 +138,6 @@ making the userspace API simple and explicit.
 
 #### `userspace/fanctl_serial/`
 - Legacy userspace tool using raw serial acess.
-
-
-## Components
-
-### Hardware
-- ESP32 DevKitC V4
-- DHT22 temperature & humidity sensor
-- SG90 servo motor (fan actuator)
-- CP2102 USB-to-UART bridge
-
-### Software
-
-#### ESP32 Firmware
-- Built with ESP-IDF
-- Uses FreeRTOS with multiple tasks:
-- `uart_read_task`: receives raw UART bytes and parses frames
-- `cmd_handler_task`: processes protocol commands
-- `sensor_task`: reads DHT22 sensor periodically
-- `fan_control_task`: controls servo based on system state
-- A central system state (`sys_state_t`) stored in a shared structure
-- UART communication uses the same protocol definition as the Linux side
-
-#### Linux Kernel Module
-- Custom tty line discipline
-- Parses incoming UART frames in kernel space
-- Implements a character device `/dev/fanctl`
-- Supports synchronous command/response using:
-  - A mutex for request serialization
-  - Completion for blocking wait
-- Exposes control operations via `ioctl`
-
-#### Userspace CLI
-- Communicates only through `/dev/fanctl`
-- No direct UART access from userspace
 
 
 ## How to Run
