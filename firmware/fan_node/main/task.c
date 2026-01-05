@@ -85,9 +85,6 @@ void	uart_read_task(void *arg)
 		{
 			ESP_LOGD("UART", "RX %d bytes: ", read_len);
 			ESP_LOG_BUFFER_HEXDUMP("UART", rx_buf, read_len, ESP_LOG_DEBUG);
-			//for (int i = 0; i < read_len; i++)
-			//	printf("%02X ", rx_buf[i]);
-			//printf("\n");
 			for (int i = 0; i < read_len; i++)
 			{
 				if (proto_rx_feed(&rx, rx_buf[i], &frame)) {
