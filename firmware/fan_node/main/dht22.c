@@ -7,10 +7,6 @@
  *
  */
 
-
-
-#include <stdio.h>
-
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -63,23 +59,63 @@ static bool	dht_read_start_response(void)
 	return true;
 }
 
-static int	dht_read_1bit(void)
+/*
+ * According to the DHT22 datasheet, the HIGH pulse width for each bit
+ * is specified in nanoseconds and typically measured by timing.
+ *
+ * However, under actual test conditions, the measured cnt value
+ * (incremented once per esp_rom_delay_us(1)) was consistently smaller
+ * than the timing values described in the datasheet.
+ *
+ * This is likely due to software overhead such as:
+ *  - GPIO polling loop execution time
+ *  - function call overhead (dht_gpio_wait_level, gpio_get_level)
+ *
+ * Observed pulse width ranges during testing:
+ *   - cnt = 44 ~ 46 : interpreted as bit '1'
+ *   - cnt = 13 ~ 15 : interpreted as bit '0'
+ *
+ * Therefore, a threshold value of cnt > 30
+ * was chosen to reliably distinguish between '0' and '1'
+ */
+static int	dht_determine_bit(int cnt)
 {
-	int16_t	cnt;
-
-	cnt = 0;
-	if (dht_gpio_wait_level(GPIO_LOW, 100) == -1 || dht_gpio_wait_level(GPIO_HIGH, 100) == -1)
-		return -1;
-	while (gpio_get_level(DHT_GPIO) == GPIO_HIGH && cnt < 100)
-	{
-		cnt++;
-		esp_rom_delay_us(1);
-	}
 	if (cnt > 30)
 		return 1;
 	return 0;
 }
 
+static int	dht_wait_bit_start(int usec)
+{
+	if (dht_gpio_wait_level(GPIO_LOW, usec) == -1 || dht_gpio_wait_level(GPIO_HIGH, usec) == -1)
+		return -1;
+	return 0;
+}
+
+static int	dht_read_1bit(void)
+{
+	int16_t		cnt;
+	int			bit;
+	const int	timeout = 100;
+
+	cnt = 0;
+	if (dht_wait_bit_start(timeout))
+		return -1;
+	while (gpio_get_level(DHT_GPIO) == GPIO_HIGH && cnt < timeout)
+	{
+		cnt++;
+		esp_rom_delay_us(1);
+	}
+	bit = dht_determine_bit(cnt);
+	return bit;
+}
+
+/*
+ * DHT22 sends 40 bits at once
+ * 1st - 2nd byte: humidity
+ * 3rd - 4th byte: temperature
+ * 5th byte: checksum
+ */
 static bool	dht_read_raw(uint8_t out[5])
 {
 	int	byte_index;
