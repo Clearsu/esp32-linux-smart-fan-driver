@@ -1,10 +1,10 @@
 # esp32-linux-smart-fan-driver
 
-A system in which an ESP32 MCU monitors temperature via a DHT22 sensor, activates a fan when a threshold is exceeded, communicates with a Linux host using a custom UART protocol, and allows the user to control the MCU through a custom Linux kernel driver.
+A system in which an ESP32 MCU monitors temperature via a DHT22 sensor, activates a fan when a threshold is exceeded, communicates with a Linux host using a custom UART protocol, and allows the user to control the MCU through a device driver.
 
 ## Summary
 
-ESP32-based smart fan node controlled from Linux through a custom kernel driver.
+ESP32-based smart fan node controlled from Linux through a character device driver.
 
 This project implements an end-to-end embedded system consisting of:
 
