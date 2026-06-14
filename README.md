@@ -125,7 +125,7 @@ making the userspace API simple and explicit.
 - ESP32 firmware for the smart fan node.
 
 #### `kernel/fanctl/`
-- Linux kernel driver for the ESP32 fan node.
+- Linux driver for the ESP32 fan node.
 
 #### `tools/python/`
 - A raw serial protocol test script (`proto_test.py`)
